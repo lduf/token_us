@@ -38,16 +38,15 @@ async def debate(ctx):
                 roles_name = [role.name for role in member.roles]
                 if "Bots" not in roles_name and "Morts" not in roles_name: #si les jours ont pas le role Bots ou Morts je l'ajoute à ma liste de joeur
                     players.append(member)
+            await ctx.send("Débat général pendant {} secondes".format(global_time_begin))
             for player in players:
-                await ctx.send("Débat général")
                 roles_name= [role.name for role in player.roles]
                 if "Bots" not in roles_name and "Morts" not in roles_name:
                     await player.edit(mute=False) #Je démute tout le monde (les vivants)
             time.sleep(global_time_begin)#Pause dans le script le temps que les gens parlent
             for player in players:#Je remute tous les joueurs
-                await ctx.send("Fin de la phase de débat. Début du blabla individuel")
                 await player.edit(mute=True)
-            time_each = debate_time-(global_time_begin+global_time_end)/len(player)
+            time_each = (debate_time-(global_time_begin+global_time_end))/len(players)
             await ctx.send("Temps de parole par personnes : {}".format(time_each))
            # for _ in range(int((debate_time-(global_time_begin+global_time_end))/(time_each*len(players)))): #Je boucle tant qu'il me reste du temps
             for player in players:
@@ -60,7 +59,7 @@ async def debate(ctx):
                     time.sleep(time_each)#Je le laisse parler son temps
                     await player.edit(mute=True)#Et je le remute
                     await player.send('Aller stopppp 👀 !')
-            await ctx.send("Début de la phase globale de blabla")
+            await ctx.send("Début de la phase globale  pendant {} secondes".format(global_time_end))
             for player in players:
                 roles_name = [role.name for role in player.roles]
                 if "Bots" not in roles_name and "Morts" not in roles_name:              #Je laisse parler tout le monde
@@ -104,7 +103,7 @@ async def game(ctx):
     msg = await ctx.channel.history(limit=50).flatten()
     for m in msg:
         await m.delete()
-    msg = await ctx.send("Que la game commence ! \n Utilise :mute: pour mute tout le monde, :loud_sound: pour unmute, :knife: pour t'ajouter aux morts, :repeat: pour recommencer une game ou :man_detective: pour lancer un débat")
+    msg = await ctx.send("Que la game commence ! \n Utilise :mute: pour mute tout le monde, :loud_sound: pour unmute, :knife: pour t'ajouter aux morts, :repeat: pour recommencer une game ou :man_detective: pour lancer un débat. \n\nPS SEUL LE AJOUTER AU MORT MARCHE ACTUELLEMENT, deso pas deso")
    # await msg.add_reaction(emoji="mute:423541694600970243")
     await msg.add_reaction('🔇')
     await msg.add_reaction("🔊")
