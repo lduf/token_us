@@ -3,11 +3,9 @@ import time
 import os
 from discord.ext import commands
 from dotenv import load_dotenv
-from discord import voice_client
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-#GUILD_ID = os.getenv('DISCORD_GUILD_ID')
 
 bot = commands.Bot(command_prefix='!')
 client = discord.Client()
@@ -27,49 +25,62 @@ async def leave(ctx):
 @bot.command(pass_context=True, name='debate', help='Temps de débat')
 async def debate(ctx):
     debate_time = 120 #temps du débat
-    time_each = 12 #temps par joueur par tour
-    global_time = 20 #temps de discussion générale au début et à la fin
+    global_time_begin = 35 #temps de discussion générale au début
+    global_time_end = 20 #temps de discussion générale à la fin
+    time_each = 12  # temps par joueur par tour
     for x in bot.voice_clients:#Partout où est le bot
         if (x.guild == ctx.message.guild):#Si je suis dans le meme monde que là où j'ai été appel"
             channel = x.channel #gets the channel you want to get the list from
-            await channel.send("Début du débat !!! :gun:")
+            await ctx.send("Début du débat !!! :gun:")
             members = channel.members #finds members connected to the channel
             players = [] #(list)
             for member in members:
-                if ("Bots" and "Morts") not in [role.name for role in member.roles]: #si les jours ont pas le role Bots ou Morts je l'ajoute à ma liste de joeur
+                roles_name = [role.name for role in member.roles]
+                if "Bots" not in roles_name and "Morts" not in roles_name: #si les jours ont pas le role Bots ou Morts je l'ajoute à ma liste de joeur
                     players.append(member)
             for player in players:
-                if ("Bots" and "Morts") not in [role.name for role in player.roles]:
+                await ctx.send("Débat général")
+                roles_name= [role.name for role in player.roles]
+                if "Bots" not in roles_name and "Morts" not in roles_name:
                     await player.edit(mute=False) #Je démute tout le monde (les vivants)
-            time.sleep(global_time)#Pause dans le script le temps que les gens parlent
+            time.sleep(global_time_begin)#Pause dans le script le temps que les gens parlent
             for player in players:#Je remute tous les joueurs
+                await ctx.send("Fin de la phase de débat. Début du blabla individuel")
                 await player.edit(mute=True)
-            for _ in range(int((debate_time-2*global_time)/(time_each*len(players)))): #Je boucle tant qu'il me reste du temps
-                for player in players:
-                    if ("Bots" and "Morts") not in [role.name for role in player.roles]:
-                        await player.send('À ton tour de parler 👀 !')#Je text le boy pour lui dire que c'est son tour
-                        await player.edit(mute=False)#Je le demute
-                        time.sleep(time_each)#Je le laisse parler son temps
-                        await player.edit(mute=True)#Et je le remute
-                        await player.send('Aller stopppp 👀 !')
+            time_each = debate_time-(global_time_begin+global_time_end)/len(player)
+            await ctx.send("Temps de parole par personnes : {}".format(time_each))
+           # for _ in range(int((debate_time-(global_time_begin+global_time_end))/(time_each*len(players)))): #Je boucle tant qu'il me reste du temps
             for player in players:
-                if ("Bots" and "Morts") not in [role.name for role in player.roles]:#Je laisse parler tout le monde
+                roles_name = [role.name for role in player.roles]
+                if "Bots" not in roles_name and "Morts" not in roles_name:
+                    mess = "Au tour de @{} : ".format(player.name)
+                    await ctx.send(mess)
+                    await player.send('À ton tour de parler 👀 !')#Je text le boy pour lui dire que c'est son tour
+                    await player.edit(mute=False)#Je le demute
+                    time.sleep(time_each)#Je le laisse parler son temps
+                    await player.edit(mute=True)#Et je le remute
+                    await player.send('Aller stopppp 👀 !')
+            await ctx.send("Début de la phase globale de blabla")
+            for player in players:
+                roles_name = [role.name for role in player.roles]
+                if "Bots" not in roles_name and "Morts" not in roles_name:              #Je laisse parler tout le monde
                     await player.send('Tu peux parler 👀 !')
                     await player.edit(mute=False)
-            time.sleep(global_time)
+            time.sleep(global_time_end)
+            await ctx.send("Et chut")
             for player in players: #Tout le monde se tait
                 await player.send('Aller chuttt 👀 !')
                 await player.edit(mute=True)
 
 @bot.command(pass_context=True, name='start', help='Mute tout le monde')
 async def start(ctx):
-    print(ctx)
     for x in bot.voice_clients:
         if (x.guild == ctx.message.guild):
             channel = x.channel  # bot.get_channel(x.channel) #gets the channel you want to get the list from
             members = channel.members  # finds members connected to the channel
             players = []  # (list)
             for member in members:
+                print(member)
                 if "Bots" not in [role.name for role in member.roles]:
                     players.append(member)
             for player in players:
